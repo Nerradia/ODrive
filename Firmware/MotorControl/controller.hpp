@@ -19,7 +19,8 @@ public:
         CTRL_MODE_CURRENT_CONTROL = 1,
         CTRL_MODE_VELOCITY_CONTROL = 2,
         CTRL_MODE_POSITION_CONTROL = 3,
-        CTRL_MODE_TRAJECTORY_CONTROL = 4
+        CTRL_MODE_TRAJECTORY_CONTROL = 4,
+        CTRL_MODE_PID_POSITION_CONTROL = 5
     };
 
     struct Config_t {
@@ -31,6 +32,9 @@ public:
         float vel_limit = 20000.0f;        // [counts/s]
         float vel_limit_tolerance = 1.2f;  // ratio to vel_lim. 0.0f to disable
         float vel_ramp_rate = 10000.0f;  // [(counts/s) / s]
+        
+        float pos_der_gain = 0.0f; // Gain of position derivative in CTRL_MODE_PID_POSITION_CONTROL
+        float pos_int_gain = 0.0f; // Gain of position error integrator in CTRL_MODE_PID_POSITION_CONTROL
         bool setpoints_in_cpr = false;
     };
 
@@ -87,6 +91,9 @@ public:
     float vel_ramp_target_ = 0.0f;
     bool vel_ramp_enable_ = false;
 
+    float pos_err_integrator = 0.0f;
+    float pos_err_lastvalue = 0.0f;
+
     uint32_t traj_start_loop_count_ = 0;
 
     // Communication protocol definitions
@@ -107,7 +114,9 @@ public:
                 make_protocol_property("vel_limit", &config_.vel_limit),
                 make_protocol_property("vel_limit_tolerance", &config_.vel_limit_tolerance),
                 make_protocol_property("vel_ramp_rate", &config_.vel_ramp_rate),
-                make_protocol_property("setpoints_in_cpr", &config_.setpoints_in_cpr)
+                make_protocol_property("setpoints_in_cpr", &config_.setpoints_in_cpr),
+                make_protocol_property("pos_der_gain", &config_.pos_der_gain),
+                make_protocol_property("pos_int_gain", &config_.pos_int_gain)
             ),
             make_protocol_function("set_pos_setpoint", *this, &Controller::set_pos_setpoint,
                 "pos_setpoint", "vel_feed_forward", "current_feed_forward"),
